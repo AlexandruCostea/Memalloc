@@ -2,6 +2,8 @@ extern crate libc;
 
 use std::{ptr, io};
 
+use super::block_header:: BlockHeader;
+
 pub fn memalloc(len: usize) -> Result<*mut libc::c_void, io::Error> {
     unsafe {
         // mmap syscall parameters
@@ -15,12 +17,13 @@ pub fn memalloc(len: usize) -> Result<*mut libc::c_void, io::Error> {
         let offset: i64 = 0;
 
         let block: *mut libc::c_void;
-        block = libc::mmap(addr, len, prot, flags, fd, offset);
+        let block_len = size_of::<BlockHeader>() + len;
+        block = libc::mmap(addr, block_len, prot, flags, fd, offset);
 
         match block {
             libc::MAP_FAILED => Err(io::Error::last_os_error()),
             _ => Ok(block)
         }
-
+        
     }
 }
