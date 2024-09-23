@@ -1,18 +1,23 @@
 mod mem_manager;
 
-use mem_manager::memalloc::memalloc;
+use mem_manager::{forget::forget, memorize::memorize};
 fn main() {
 
-        // Allocate 4096 bytes (one page).
-        let mem1 = memalloc(4096);
-        match mem1 {
-            Ok(new_mem) => println!("Memory allocated at: {:?}", new_mem),
-            Err(error) => println!("{:?}", error)
+        let mem1 = memorize(30);
+        if !mem1.is_null() {
+            println!("Memory allocated at: {:?}", mem1);
         }
 
-        let mem2 = memalloc(10);
-        match mem2 {
-            Ok(new_mem) => println!("Memory allocated at: {:?}", new_mem),
-            Err(error) => println!("{:?}", error)
+        let mem2 = memorize(10);
+        if !mem2.is_null() {
+            println!("Memory allocated at: {:?}", mem2);
         }
+
+        forget(mem1);
+
+        let mem3 = memorize(10);
+        if !mem3.is_null() {
+            println!("Memory allocated at: {:?}", mem3);
+        }
+
 }
