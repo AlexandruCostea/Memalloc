@@ -10,14 +10,14 @@ pub fn memorize(size: usize) -> *mut libc::c_void {
     let block: *mut libc::c_void;
 
     if size <= 0 {
-        return std::ptr::null_mut();
+        return ptr::null_mut();
     }
 
     let _get_lock = GLOBAL_MEMALLOC_LOCK.lock();
 
     unsafe {
         let header: *mut BlockHeader = get_free_block(size);
-        if header != std::ptr::null_mut() {
+        if header != ptr::null_mut() {
             (*header).is_free = false;
             let block: *mut libc::c_void = header as *mut libc::c_void;
             let post_header_memory: *mut libc::c_void = block.add(size_of::<BlockHeader>());
@@ -35,16 +35,16 @@ pub fn memorize(size: usize) -> *mut libc::c_void {
         block = libc::mmap(addr, total_size, prot, flags, fd, offset);
 
         match block {
-            libc::MAP_FAILED => std::ptr::null_mut(),
+            libc::MAP_FAILED => ptr::null_mut(),
             _ => {
                 let header: *mut BlockHeader = block as *mut BlockHeader;
                 (*header).size = size;
                 (*header).is_free = false;
-                (*header).next = std::ptr::null_mut();
-                if HEAD == std::ptr::null_mut() {
+                (*header).next = ptr::null_mut();
+                if HEAD == ptr::null_mut() {
                     HEAD = header;
                 }
-                if TAIL == std::ptr::null_mut() {
+                if TAIL == ptr::null_mut() {
                     TAIL = header;
                 }
 
@@ -64,16 +64,16 @@ pub fn memorize(size: usize) -> *mut libc::c_void {
 fn get_free_block(size: usize) -> *mut BlockHeader {
     unsafe {
         let mut block: *mut BlockHeader = HEAD;
-        if block == std::ptr::null_mut() {
-            return std::ptr::null_mut();
+        if block == ptr::null_mut() {
+            return ptr::null_mut();
         }
 
         loop {
             if (*block).is_free && (*block).size >= size {
                 return block;
             }
-            if (*block).next == std::ptr::null_mut() {
-                return std::ptr::null_mut();
+            if (*block).next == ptr::null_mut() {
+                return ptr::null_mut();
             }
             block = (*block).next;
         }

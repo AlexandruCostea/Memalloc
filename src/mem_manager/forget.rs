@@ -1,5 +1,8 @@
 extern crate libc;
 
+use std::ptr;
+
+
 use super::{block_header::BlockHeader, GLOBAL_MEMALLOC_LOCK, HEAD, TAIL};
 
 pub fn forget(block: *mut libc::c_void) {
@@ -14,14 +17,14 @@ pub fn forget(block: *mut libc::c_void) {
 
         if header == TAIL {
             if HEAD == TAIL {
-                HEAD = std::ptr::null_mut();
-                TAIL = std::ptr::null_mut();
+                HEAD = ptr::null_mut();
+                TAIL = ptr::null_mut();
             } 
             else {
                 let mut temp: *mut BlockHeader = HEAD;
                 while !temp.is_null() {
                     if (*temp).next == TAIL {
-                        (*temp).next = std::ptr::null_mut();
+                        (*temp).next = ptr::null_mut();
                         TAIL = temp;
                     }
                     temp = (*temp).next;
