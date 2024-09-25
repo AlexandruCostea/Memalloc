@@ -1,10 +1,11 @@
 use block_header::BlockHeader;
 use std::sync::Mutex; 
 
+mod block_header;
 
 pub mod memorize;
 pub mod forget;
-mod block_header;
+pub mod rememorize;
 
 
 static mut HEAD: *mut BlockHeader = std::ptr::null_mut();
