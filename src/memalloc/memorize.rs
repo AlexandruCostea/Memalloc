@@ -2,7 +2,9 @@ extern crate libc;
 
 use std::ptr;
 
-use super::{block_header::BlockHeader, SBRK_THRESHOLD, GLOBAL_MEMALLOC_LOCK, HEAD_MEM, TAIL_MEM, HEAD_FREE};
+use super::block_header::BlockHeader;
+use super::memory_block_linker::{link_added_block, split_block};
+use super::{SBRK_THRESHOLD, GLOBAL_MEMALLOC_LOCK, HEAD_MEM, TAIL_MEM, HEAD_FREE, FREE_BLOCKS};
 
 
 pub fn memorize(size: usize) -> *mut libc::c_void {
@@ -61,6 +63,11 @@ pub fn memorize(size: usize) -> *mut libc::c_void {
             libc::MAP_FAILED => ptr::null_mut(),
             _ => {
                 let header: *mut BlockHeader = block as *mut BlockHeader;
+
+                let block_address: isize = block as isize;
+                link_added_block(block_address);
+
+                FREE_BLOCKS.lock().unwrap().insert(block_address, (false, total_size as isize));
                 (*header).size = size;
                 (*header).next = ptr::null_mut();
 
@@ -79,6 +86,10 @@ pub fn memorize(size: usize) -> *mut libc::c_void {
                 }
                 let post_header_memory: *mut libc::c_void = block.add(size_of::<BlockHeader>());
 
+                // print the contents of the free blocks hashmap
+                // for (key, value) in FREE_BLOCKS.lock().unwrap().iter() {
+                //     println!("Key: {}, Value: {:?}", key, value);
+                // }
                 post_header_memory
             }
         }
@@ -89,6 +100,7 @@ pub fn memorize(size: usize) -> *mut libc::c_void {
 
 fn get_free_block(size: usize) -> *mut BlockHeader {
     
+    let total_size: isize = (size_of::<BlockHeader>()  + size) as isize;
     let _get_lock = GLOBAL_MEMALLOC_LOCK.lock();
     unsafe {
         let mut block: *mut BlockHeader = HEAD_FREE;
@@ -98,18 +110,32 @@ fn get_free_block(size: usize) -> *mut BlockHeader {
         }
 
         if (*block).size >= size {
+            
+            if (*block).size > size {
+                let block_address: isize = block as isize;
+                split_block(block_address, size);
+            }
+
             HEAD_FREE = (*HEAD_FREE).next;
             (*block).next = HEAD_MEM;
             HEAD_MEM = block;
+            FREE_BLOCKS.lock().unwrap().insert(block as isize, (false, total_size));
             return block;
         }
 
         loop {
             let next_block = (*block).next;
             if (*next_block).size >= size {
+
+                if (*next_block).size > size {
+                    let block_address: isize = next_block as isize;
+                    split_block(block_address, size);
+                }
+
                 (*block).next = (*next_block).next;
                 (*next_block).next = HEAD_MEM;
                 HEAD_MEM = next_block;
+                FREE_BLOCKS.lock().unwrap().insert(next_block as isize, (false, total_size));
                 return next_block;
             }
             if next_block == ptr::null_mut() {
