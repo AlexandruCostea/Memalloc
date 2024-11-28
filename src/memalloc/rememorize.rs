@@ -2,7 +2,11 @@ extern crate libc;
 
 use std::ptr;
 
-use super::{block_header::BlockHeader, forget::forget, memorize::memorize};
+use super::block_header::BlockHeader;
+use super::memorize::memorize;
+use super::forget::forget;
+
+
 
 pub fn rememorize(block: *mut libc::c_void, size: usize) -> *mut libc::c_void {
 
