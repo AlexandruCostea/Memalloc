@@ -51,3 +51,25 @@ The library offers the following methods for memory management:
   Plans include providing C bindings and comprehensive tests in C environments to ensure seamless compatibility and ease of use across different programming languages.
 
 ---
+
+## Installation
+
+To install and use `memalloc` in your Rust project:
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/AlexandruCostea/memalloc.git
+   cd memalloc
+   ```
+
+2. Build the project:
+  ```bash
+    cargo build --release
+  ```
+
+3. Use the library in your Rust program by adding the following to your Cargo.toml:
+   ```
+   [dependencies]
+   memalloc = { path = "/path/to/memalloc" }
+   ```
